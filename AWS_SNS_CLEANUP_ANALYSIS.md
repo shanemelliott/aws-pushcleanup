@@ -13,7 +13,7 @@ VEText has accumulated **4.2 million push notification endpoints** with **562,91
 - **Increased AWS costs** from disabled endpoints
 
 ### Root Cause Analysis
-The original engineering discussion revealed a concern that deleting on logout might not be the intended action of the user (stop recieving push notifications)
+The original engineering discussion revealed a concern that deleting on logout might not be the intended action of the user (stop receiving push notifications)
 
 **Current VEText behavior:**
 - Users logout ≠ delete push token
