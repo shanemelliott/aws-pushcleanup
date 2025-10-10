@@ -13,8 +13,7 @@ VEText has accumulated **4.2 million push notification endpoints** with **562,91
 - **Increased AWS costs** from disabled endpoints
 
 ### Root Cause Analysis
-The original engineering discussion revealed:
-> "Right but it also deletes a users registration when logging out. It's not clear to me logging out should be tied to 'i no longer receive push notifications', I think that's an assumption I wouldn't necessarily agree with."
+The original engineering discussion revealed a concern that deleting on logout might not be the intended action of the user (stop recieving push notifications)
 
 **Current VEText behavior:**
 - Users logout ≠ delete push token
