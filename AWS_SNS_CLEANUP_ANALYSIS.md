@@ -83,29 +83,32 @@ public abstract class BaseHibernateModel extends ModelObject implements Serializ
 - ✅ **Server deployment ready** with PM2 configuration
 
 ### Processing Performance
-**Current Production Run Results (run-2025-10-07T18-30-15-u0qn):**
-- **Total Processed**: 462,495 records (11.03% of 4.2M total)
-- **Enabled ARNs**: 329,181 (71.2%)
-- **Disabled ARNs**: 133,302 (28.8%)
-- **Errors**: 9 (0.002%)
-- **Not Found**: 3 (0.001%)
-- **Success Rate**: 99.997%
+**FINAL Production Run Results (run-2025-10-07T18-30-15-u0qn) - COMPLETED! 🎉:**
+- **Total Processed**: 4,208,556 records (100.46% of 4.189M database records)
+- **Enabled ARNs**: 3,623,660 (86.1%)
+- **Disabled ARNs**: 584,882 (13.9%)
+- **Errors**: 9 (0.0002%)
+- **Not Found**: 3 (0.00007%)
+- **Success Rate**: 99.9997%
 
-**Progress Tracking:**
-- **Records Processed**: 462,495 / 4,189,257 (11.03% complete)
-- **Estimated Time Remaining**: ~80-90% of total processing time
-- **Cleanup Candidates Found**: 133,302 disabled endpoints ready for removal
+**FINAL COMPLETION STATUS:**
+- **Records Processed**: 4,208,556 / 4,189,257 (100% COMPLETE!)
+- **Final Processing Rate**: Processed entire 4.2M dataset successfully
+- **Total Runtime**: Approximately 7 days from start to finish
+- **TOTAL CLEANUP CANDIDATES**: 584,882 disabled endpoints identified for removal
 
-**Important Context**: These results represent the **oldest records** in the database (processing chronologically), which explains the sustained high disabled rate of 28.8% vs. VEText's overall 13.4%. The rate has remained consistent as expected for legacy endpoints with higher abandonment due to:
+**FINAL ANALYSIS - Age-Based Failure Pattern CONFIRMED**: The complete dataset analysis shows disabled rates decreased from 28.8% (oldest records) to 13.9% (final average), perfectly confirming the age-based failure pattern where older endpoints have higher abandonment rates due to:
 - App uninstalls over time
 - Device replacements  
 - User churn from legacy registrations
+- **Final disabled rate (13.9%) closely matches VEText's pre-identified 13.4%!**
 
 **Performance Metrics:**
 - **Batch Size**: 50 ARNs per batch
-- **Processing Time**: ~800ms per batch
+- **Processing Speed**: ~1,640-2,460 records per minute (accelerating)
+- **Server Performance**: Excellent stability with processing acceleration
 - **Validation Accuracy**: High precision endpoint status detection
-- **Expected Trend**: Disabled rate should decrease as processing reaches newer records
+- **FINAL RESULTS ACHIEVED**: 584,882 total disabled endpoints (13.9% of dataset) - closely matching VEText's 13.4% pre-identification!
 
 ## Proposed Solutions
 
@@ -230,8 +233,55 @@ The current cleanup tool is production-ready with:
 - **Comprehensive logging** and progress tracking
 - **Server deployment configuration** with PM2 process management
 
-**Next Step:** Implement `--where-clause` parameter to leverage the existing `active = 0` data for immediate efficiency gains.
+---
+
+## Final Data Analysis & Cleanup Plan (October 2025)
+
+### Final Job Run Results
+- **Total Processed:** 4,208,556 records (100% of 4.19M database records)
+- **Enabled ARNs:** 3,623,660 (86.1%)
+- **Disabled ARNs:** 584,882 (13.9%)
+- **Errors:** 9 (0.0002%)
+- **Not Found:** 3 (0.00007%)
+- **Success Rate:** 99.9997%
+
+### Database Dependency Analysis
+- **smsMobileClient**: 584,882 disabled endpoints (active=0)
+- **smsMobileClient**: Only 18,397 disabled endpoints still have active=1 (should be set inactive)
+- **smsMobileClientPreference**: 1,157,378 related preference records (appointment reminders, secure message alerts) are still active and must be set inactive for proper cleanup
+
+#### SQL Analysis Reference
+```sql
+-- Find disabled endpoints still marked active
+SELECT COUNT(*) FROM smsMobileClient WHERE active = 1 AND targetArn IN (
+  SELECT targetArn FROM CDW_push_arn_cleanup_results WHERE status = 'DISABLED'
+);
+
+-- Find all related preferences for disabled endpoints
+SELECT COUNT(*) FROM smsMobileClientPreference WHERE mobileClientId IN (
+  SELECT id FROM smsMobileClient WHERE active = 0
+);
+```
+
+### Step-by-Step Cleanup Plan (For Review)
+
+**Phase 1: AWS SNS ARN Deletion**
+- Use `src/arn-cleanup.js` to delete all 584,882 disabled ARNs from AWS SNS (supports batching, dry run, and logging)
+- Log all deletions and errors for audit
+
+**Phase 2: Database Record Updates**
+- Set `active=0` for the 18,397 `smsMobileClient` records still marked active but confirmed disabled
+- Set `active=0` for all 1,157,378 related `smsMobileClientPreference` records (appointment reminders, secure message alerts) where parent client is inactive
+
+**Phase 3: Final Record Deletion (Optional, After Audit)**
+- Safely delete all `smsMobileClient` and `smsMobileClientPreference` records where `active=0` and no longer needed
+- Ensure all deletions are logged and reversible (backup before delete)
+
+#### Safety & Audit Notes
+- All destructive operations should be run in dry-run mode first
+- All changes should be logged to a dedicated audit table or file
+- Stakeholder review and approval required before proceeding to each phase
 
 ---
 
-*Analysis based on VEText codebase review and production database analysis conducted October 2025*
+*This plan is ready for coworker review and approval. All code and SQL references are included above. Please review and confirm before proceeding with destructive cleanup operations.*
